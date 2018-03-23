@@ -2,12 +2,23 @@
   
 import UIKit
 import PlaygroundSupport
+import AVFoundation
 
 @objc(FruitViewController)
 public class FruitViewController : UIViewController {
+    // Scene images
     @IBOutlet weak var sunImageView: UIImageView!
     @IBOutlet weak var eyesImageView: UIImageView!
+    @IBOutlet weak var hillsImageView: UIImageView!
+    
+    // Photo button
+    @IBOutlet weak var photoButton: UIButton!
+    
+    // Label
     @IBOutlet weak var messageLabel: UILabel!
+    
+    // AVPlayer
+    private var player: AVAudioPlayer!
     
     // When an intro message is fully played out
     var hasWelcomedUser = false
@@ -17,6 +28,8 @@ public class FruitViewController : UIViewController {
         sunImageView.layer.opacity = 0.0
         eyesImageView.layer.opacity = 0.0
         messageLabel.alpha = 0.0
+        photoButton.alpha = 0.0
+        hillsImageView.alpha = 0.0
     }
     
     // View did appear
@@ -30,6 +43,7 @@ public class FruitViewController : UIViewController {
         UIView.animate(withDuration: 1.5, delay: 0.0, options: UIViewAnimationOptions.curveEaseIn, animations: {
             self.sunImageView.layer.opacity = 1.0
             self.eyesImageView.layer.opacity = 1.0
+            self.hillsImageView.layer.opacity = 1.0
         })
         
         // Start rotating the sun
@@ -41,62 +55,65 @@ public class FruitViewController : UIViewController {
     
     // Start messages
     public func startWelcome() {
-        sayMessage(message: "Hello human! I'm the Sun, grower of all tasty fruits on your planet Earth.", seconds: 2.5)
-        sayMessage(message: "I can tell you about different fruits you send me.", seconds: 7.0)
-        sayMessage(message: "Use your Earth goggles, I mean camera, to send me a fruit.", seconds: 12.0)
+        sayMessage(message: "☉ Hello human subject! I'm the Sun, creator of all tasty fruits on your planet Earth", seconds: 2.0)
+        sayMessage(message: "☉ I can tell you all about any fruit that you send to me", seconds: 7.0)
+        sayMessage(message: "☉ Make sure to find a nearby fruit on Earth to begin", seconds: 14.0)
+        sayMessage(message: "☉ Then use your metal goggles (camera) to send me a fruit to explore", seconds: 20.0)
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5 + 7.0 + 12.0) {
+        print("...")
+        // Welcome completed
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5 + 7.0 + 14.0) {
+            print("Welcome")
             self.hasWelcomedUser = true
+            self.setupInteractivity()
         }
+    }
+    
+    public func setupInteractivity() {
+        UIView.animate(withDuration: 1.0, delay: 0.0, options: UIViewAnimationOptions.curveEaseIn, animations: {
+            self.photoButton.alpha = 1.0
+        })
     }
     
     // Say message
     public func sayMessage(message: String, seconds: Double) {
         // Delay
         DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
-            print("Has welcomed user = \(self.hasWelcomedUser)")
             // Fade out
-            UIView.animate(withDuration: 1.0, animations: {
-                self.messageLabel.alpha = 0.0
-            })
-            
-            // Replace label
-            self.messageLabel.text = message
-            
-            // Fade in
             UIView.animate(withDuration: 0.5, animations: {
-                self.messageLabel.alpha = 1.0
+                self.messageLabel.alpha = 0.0
+            }, completion: { finished in
+                // Replace label
+                self.messageLabel.text = message
+                
+
+                
+                // Fade in
+                UIView.animate(withDuration: 0.5, delay: 0.5, options: UIViewAnimationOptions.curveEaseInOut, animations: {
+                    
+                    // create a sound ID, in this case its the tweet sound.
+                   
+
+                    self.messageLabel.alpha = 1.0
+                }, completion: { finished in
+                     self.playSound()
+                    })
             })
         }
+    }
+    
+    public func playSound() {
+        let systemSoundID: SystemSoundID = 1016
+        AudioServicesPlaySystemSound(systemSoundID)
     }
     
     // Rotate sun
     public func rotateSun() {
-        UIView.animate(withDuration: 5.0, delay: 0.0, options: UIViewAnimationOptions.curveLinear, animations: {
+        UIView.animate(withDuration: 6.0, delay: 0.0, options: UIViewAnimationOptions.curveLinear, animations: {
             self.sunImageView.transform = self.sunImageView.transform.rotated(by: CGFloat(Double.pi))
         }) { completed in
             self.rotateSun()
         }
-    }
-    
-    // Load view
-    override public func loadView() {
-        // This is important to call UIViewController
-        super.loadView()
-        
-        //        let view = UIView()
-        //        view.backgroundColor = UIColor(red: 40/255, green: 175/255, blue: 180/255, alpha: 1.0)
-        //
-        //        let label = UILabel()
-        //        label.backgroundColor = UIColor.red
-        //        label.frame = CGRect(x: 0, y: 200, width: 100, height: 20)
-        //        label.text = ""
-        //        label.font = UIFont.systemFont(ofSize: 20.0, weight: .black)
-        //        label.textAlignment = .center
-        //        label.textColor = .white
-        //
-        //        view.addSubview(label)
-        //        self.view = view
     }
 }
 
@@ -105,4 +122,3 @@ let view = storyboard.instantiateViewController(withIdentifier: "MainView") as! 
 
 // Present the view controller in the Live View window
 PlaygroundPage.current.liveView = view
-

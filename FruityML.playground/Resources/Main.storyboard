@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13771" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="Zbe-p6-tap">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13772"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--Fruit View Controller-->
+        <scene sceneID="L9v-P0-O6H">
+            <objects>
+                <viewController storyboardIdentifier="MainView" useStoryboardIdentifierAsRestorationIdentifier="YES" id="Zbe-p6-tap" customClass="FruitViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="ceM-ab-kbT">
+                        <rect key="frame" x="0.0" y="0.0" width="500" height="500"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="sky_asset.png" translatesAutoresizingMaskIntoConstraints="NO" id="dH1-Rt-xdF">
+                                <rect key="frame" x="0.0" y="0.0" width="500" height="500"/>
+                            </imageView>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="sun_asset.png" translatesAutoresizingMaskIntoConstraints="NO" id="8cX-xK-HJr">
+                                <rect key="frame" x="200" y="20" width="100" height="100"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="100" id="3RD-e3-mD3"/>
+                                    <constraint firstAttribute="height" constant="100" id="P3l-H1-gTQ"/>
+                                </constraints>
+                            </imageView>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="hill_asset.png" translatesAutoresizingMaskIntoConstraints="NO" id="Re2-7W-eIu">
+                                <rect key="frame" x="0.0" y="400" width="500" height="100"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="100" id="n9u-ub-1ff"/>
+                                </constraints>
+                            </imageView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="mtc-Cm-SOc">
+                                <rect key="frame" x="175" y="430" width="150" height="40"/>
+                                <color key="backgroundColor" red="0.93175194300518138" green="0.53720263504154608" blue="0.10223863819650229" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="150" id="gp6-EA-QSZ"/>
+                                    <constraint firstAttribute="height" constant="40" id="vTk-M9-gla"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" weight="heavy" pointSize="18"/>
+                                <state key="normal" title="Snap Fruit">
+                                    <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                </state>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                                        <integer key="value" value="5"/>
+                                    </userDefinedRuntimeAttribute>
+                                </userDefinedRuntimeAttributes>
+                            </button>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumFontSize="8" translatesAutoresizingMaskIntoConstraints="NO" id="laT-bF-P3R">
+                                <rect key="frame" x="40" y="230" width="420" height="60"/>
+                                <color key="backgroundColor" white="1" alpha="0.59999999999999998" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="60" id="ZU0-Xq-ulf"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                <color key="textColor" red="0.14143458549222798" green="0.14143458549222798" blue="0.14143458549222798" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                                        <integer key="value" value="5"/>
+                                    </userDefinedRuntimeAttribute>
+                                </userDefinedRuntimeAttributes>
+                            </label>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="eyes_asset.png" translatesAutoresizingMaskIntoConstraints="NO" id="8qG-Zu-lny">
+                                <rect key="frame" x="200" y="20" width="100" height="100"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="100" id="M0a-HN-hFw"/>
+                                    <constraint firstAttribute="width" constant="100" id="rIR-F7-9Tu"/>
+                                </constraints>
+                            </imageView>
+                        </subviews>
+                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstItem="mtc-Cm-SOc" firstAttribute="centerX" secondItem="xJn-LP-QXM" secondAttribute="centerX" id="63C-Na-FyX"/>
+                            <constraint firstItem="xJn-LP-QXM" firstAttribute="bottom" secondItem="mtc-Cm-SOc" secondAttribute="bottom" constant="30" id="7Aw-Yf-InD"/>
+                            <constraint firstItem="8cX-xK-HJr" firstAttribute="centerX" secondItem="xJn-LP-QXM" secondAttribute="centerX" id="7GW-cX-m9U"/>
+                            <constraint firstItem="laT-bF-P3R" firstAttribute="leading" secondItem="xJn-LP-QXM" secondAttribute="leading" constant="40" id="9r6-ai-Mza"/>
+                            <constraint firstItem="dH1-Rt-xdF" firstAttribute="top" secondItem="ceM-ab-kbT" secondAttribute="top" id="E5l-Ag-ZHv"/>
+                            <constraint firstItem="xJn-LP-QXM" firstAttribute="trailing" secondItem="laT-bF-P3R" secondAttribute="trailing" constant="40" id="FcH-28-TgO"/>
+                            <constraint firstItem="laT-bF-P3R" firstAttribute="centerY" secondItem="xJn-LP-QXM" secondAttribute="centerY" id="PUU-Y3-aHf"/>
+                            <constraint firstItem="dH1-Rt-xdF" firstAttribute="bottom" secondItem="xJn-LP-QXM" secondAttribute="bottom" id="PqB-C1-S94"/>
+                            <constraint firstItem="Re2-7W-eIu" firstAttribute="bottom" secondItem="xJn-LP-QXM" secondAttribute="bottom" id="RJ7-Cv-5de"/>
+                            <constraint firstItem="8qG-Zu-lny" firstAttribute="centerY" secondItem="8cX-xK-HJr" secondAttribute="centerY" id="RXL-TA-va8"/>
+                            <constraint firstItem="Re2-7W-eIu" firstAttribute="leading" secondItem="xJn-LP-QXM" secondAttribute="leading" id="Uaw-5N-MlO"/>
+                            <constraint firstItem="8cX-xK-HJr" firstAttribute="top" secondItem="xJn-LP-QXM" secondAttribute="top" id="c7p-9i-x4c"/>
+                            <constraint firstItem="8qG-Zu-lny" firstAttribute="centerX" secondItem="8cX-xK-HJr" secondAttribute="centerX" id="daP-Wa-tyw"/>
+                            <constraint firstItem="laT-bF-P3R" firstAttribute="centerX" secondItem="xJn-LP-QXM" secondAttribute="centerX" id="gQ1-7u-Cye"/>
+                            <constraint firstItem="Re2-7W-eIu" firstAttribute="trailing" secondItem="xJn-LP-QXM" secondAttribute="trailing" id="ine-MJ-FAW"/>
+                            <constraint firstItem="dH1-Rt-xdF" firstAttribute="trailing" secondItem="xJn-LP-QXM" secondAttribute="trailing" id="vpN-fu-1BB"/>
+                            <constraint firstItem="dH1-Rt-xdF" firstAttribute="leading" secondItem="xJn-LP-QXM" secondAttribute="leading" id="xNW-jk-0lA"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="xJn-LP-QXM"/>
+                    </view>
+                    <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
+                    <size key="freeformSize" width="500" height="500"/>
+                    <connections>
+                        <outlet property="eyesImageView" destination="8qG-Zu-lny" id="2X4-01-O9l"/>
+                        <outlet property="messageLabel" destination="laT-bF-P3R" id="8Rr-sk-3Q9"/>
+                        <outlet property="sunImageView" destination="8cX-xK-HJr" id="6eV-br-dbc"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="ytp-il-fr3" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="433.60000000000002" y="-104.34782608695653"/>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="eyes_asset.png" width="399" height="406"/>
+        <image name="hill_asset.png" width="1000" height="166"/>
+        <image name="sky_asset.png" width="20" height="1000"/>
+        <image name="sun_asset.png" width="398" height="406"/>
+    </resources>
+</document>

@@ -108,6 +108,7 @@
                     <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
                     <size key="freeformSize" width="500" height="500"/>
                     <connections>
+                        <outlet property="backgroundImageView" destination="dH1-Rt-xdF" id="hyL-zX-Mv5"/>
                         <outlet property="eyesImageView" destination="8qG-Zu-lny" id="2X4-01-O9l"/>
                         <outlet property="hillsImageView" destination="Re2-7W-eIu" id="8Kt-1X-yTn"/>
                         <outlet property="messageLabel" destination="laT-bF-P3R" id="8Rr-sk-3Q9"/>

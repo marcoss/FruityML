@@ -4,8 +4,6 @@ import UIKit
 import PlaygroundSupport
 import AVFoundation
 
-var didInit = false
-
 @objc(FruitViewController)
 public class FruitViewController : UIViewController {
     // Scene images
@@ -27,12 +25,6 @@ public class FruitViewController : UIViewController {
     
     // View will appear
     public override func viewDidLoad() {
-        if (didInit) {
-            fatalError()
-        } else {
-            didInit = true
-        }
-        
         sunImageView.layer.opacity = 0.0
         eyesImageView.layer.opacity = 0.0
         messageLabel.alpha = 0.0
@@ -67,16 +59,46 @@ public class FruitViewController : UIViewController {
         blinkEyes()
         
         sayMessage(message: "☉ Hello human! I'm the Sun, creator of all tasty fruits on your planet Earth", seconds: 2.0)
-        sayMessage(message: "☉ I can tell you about any fruit that you send to me", seconds: 7.0)
-        sayMessage(message: "☉ Make sure to find a nearby fruit on Earth to begin", seconds: 13.0)
-        sayMessage(message: "☉ Then use your metal goggles (camera) to send me a fruit to explore", seconds: 20.0)
+        sayMessage(message: "☉ I can tell you about any fruit that you send to me", seconds: 6.0)
+        sayMessage(message: "☉ Make sure to find a nearby fruit on Earth to begin", seconds: 10.0)
+        sayMessage(message: "☉ Then use your metal goggles (camera) to send me a fruit to explore", seconds: 16.0)
         
         // Welcome completed
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5 + 7.0 + 14.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5 + 7.0 + 9.0) {
             print("Welcome")
             self.hasWelcomedUser = true
             self.setupInteractivity()
         }
+    }
+    
+    @IBAction func takePicture() {
+        print("Picture did touch")
+        
+        guard UIImagePickerController.isSourceTypeAvailable(.camera) else {
+            presentPhotoPicker(sourceType: .photoLibrary)
+            return
+        }
+        
+        let photoSourcePicker = UIAlertController()
+        let takePhoto = UIAlertAction(title: "Take Photo", style: .default) { [unowned self] _ in
+            self.presentPhotoPicker(sourceType: .camera)
+        }
+        let choosePhoto = UIAlertAction(title: "Choose Photo", style: .default) { [unowned self] _ in
+            self.presentPhotoPicker(sourceType: .photoLibrary)
+        }
+        
+        photoSourcePicker.addAction(takePhoto)
+        photoSourcePicker.addAction(choosePhoto)
+        photoSourcePicker.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        
+        present(photoSourcePicker, animated: true)
+    }
+    
+    func presentPhotoPicker(sourceType: UIImagePickerControllerSourceType) {
+        let picker = UIImagePickerController()
+        picker.delegate = self
+        picker.sourceType = sourceType
+        present(picker, animated: true)
     }
     
     public func setupInteractivity() {
@@ -149,6 +171,19 @@ public class FruitViewController : UIViewController {
             self.blinkEyes()
         })
         })
+    }
+}
+
+extension FruitViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    // MARK: - Handling Image Picker Selection
+    
+    public func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String: Any]) {
+        picker.dismiss(animated: true)
+        
+        // We always expect `imagePickerController(:didFinishPickingMediaWithInfo:)` to supply the original image.
+//        let image = info[UIImagePickerControllerOriginalImage] as! UIImage
+//        imageView.image = image
+//        updateClassifications(for: image)
     }
 }
 //#-end-hidden-code

@@ -1,5 +1,4 @@
-//#-hidden-code
-  
+
 import UIKit
 import PlaygroundSupport
 import AVFoundation
@@ -28,7 +27,7 @@ public class FruitViewController : UIViewController {
         sunImageView.layer.opacity = 0.0
         eyesImageView.layer.opacity = 0.0
         messageLabel.alpha = 0.0
-        photoButton.alpha = 0.0
+//        photoButton.alpha = 0.0
         hillsImageView.alpha = 0.0
         eyesImageView.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
     }
@@ -56,15 +55,15 @@ public class FruitViewController : UIViewController {
     
     // Start messages
     public func startWelcome() {
-        blinkEyes()
+//        blinkEyes()
         
-        sayMessage(message: "☉ Hello human! I'm the Sun, creator of all tasty fruits on your planet Earth", seconds: 2.0)
-        sayMessage(message: "☉ I can tell you about any fruit that you send to me", seconds: 6.0)
-        sayMessage(message: "☉ Make sure to find a nearby fruit on Earth to begin", seconds: 10.0)
-        sayMessage(message: "☉ Then use your metal goggles (camera) to send me a fruit to explore", seconds: 16.0)
+        sendMessage(message: "☉ Hello human! I'm the Sun, creator of all tasty fruits on your planet Earth", seconds: 2.0)
+        sendMessage(message: "☉ I can tell you about any fruit that you send to me", seconds: 6.0)
+        sendMessage(message: "☉ Make sure to find a nearby fruit on Earth to begin", seconds: 10.0)
+        sendMessage(message: "☉ Then use your metal goggles (camera) to send me a fruit to explore", seconds: 15.0)
         
         // Welcome completed
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5 + 7.0 + 9.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5 + 7.0 + 7.0) {
             print("Welcome")
             self.hasWelcomedUser = true
             self.setupInteractivity()
@@ -74,31 +73,60 @@ public class FruitViewController : UIViewController {
     @IBAction func takePicture() {
         print("Picture did touch")
         
-        guard UIImagePickerController.isSourceTypeAvailable(.camera) else {
-            presentPhotoPicker(sourceType: .photoLibrary)
-            return
-        }
+//        let alert = UIAlertController(title: "Title", message: "Message", preferredStyle: .alert)
+//
+//        alert.addAction(UIAlertAction(title: "Yes", style: .destructive, handler: { _ in
+//        }))
+//
+//        alert.addAction(UIAlertAction(title: "Cancel", style: .default, handler: { _ in
+//        }))
+//
+//        (self.parent as! UINavigationController).present(alert, animated: true, completion: nil)
+        
+//        let picker = UIImagePickerController()
+//        picker.allowsEditing = false
+//        picker.sourceType = .photoLibrary
+//        picker.mediaTypes = UIImagePickerController.availableMediaTypes(for: .photoLibrary)!
+//        picker.modalPresentationStyle = .popover
+//        present(picker, animated: true, completion: nil)
+        
+//        picker.popoverPresentationController?.barButtonItem = sender
+
+//        guard UIImagePickerController.isSourceTypeAvailable(.camera) else {
+//            presentPhotoPicker(sourceType: .photoLibrary)
+//            return
+//        }
+//
+        
+        // Important to cast in order to send alerts/segues
+        let parentView = self.parent as! UINavigationController
         
         let photoSourcePicker = UIAlertController()
-        let takePhoto = UIAlertAction(title: "Take Photo", style: .default) { [unowned self] _ in
+        let takePhoto = UIAlertAction(title: "Take Photo", style: .default) { _ in
             self.presentPhotoPicker(sourceType: .camera)
         }
-        let choosePhoto = UIAlertAction(title: "Choose Photo", style: .default) { [unowned self] _ in
+
+        let choosePhoto = UIAlertAction(title: "Choose Photo", style: .default) { _ in
             self.presentPhotoPicker(sourceType: .photoLibrary)
         }
-        
+
         photoSourcePicker.addAction(takePhoto)
         photoSourcePicker.addAction(choosePhoto)
-        photoSourcePicker.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
         
-        present(photoSourcePicker, animated: true)
+        if let popoverController = photoSourcePicker.popoverPresentationController {
+            popoverController.sourceView = view
+            popoverController.sourceRect = CGRect(x: 0, y: view.bounds.size.height, width: view.bounds.size.width, height: 20.0)
+            popoverController.permittedArrowDirections = .init(rawValue: 0)
+        }
+
+        parentView.present(photoSourcePicker, animated: true)
     }
     
     func presentPhotoPicker(sourceType: UIImagePickerControllerSourceType) {
         let picker = UIImagePickerController()
         picker.delegate = self
         picker.sourceType = sourceType
-        present(picker, animated: true)
+        present(picker, animated: true, completion: nil)
     }
     
     public func setupInteractivity() {
@@ -108,26 +136,20 @@ public class FruitViewController : UIViewController {
     }
     
     // Say message
-    public func sayMessage(message: String, seconds: Double) {
+    public func sendMessage(message: String, seconds: Double) {
         // Delay
         DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
             // Fade out
             UIView.animate(withDuration: 0.5, animations: {
                 self.messageLabel.alpha = 0.0
-            }, completion: { finished in
+            }, completion: { _ in
                 // Replace label
                 self.messageLabel.text = message
-                
-                
-                
+
                 // Fade in
                 UIView.animate(withDuration: 0.5, delay: 0.5, options: UIViewAnimationOptions.curveEaseInOut, animations: {
-                    
-                    // create a sound ID, in this case its the tweet sound.
-                    
-                    
                     self.messageLabel.alpha = 1.0
-                }, completion: { finished in
+                }, completion: { _ in
                     self.playSound()
                 })
             })
@@ -135,28 +157,14 @@ public class FruitViewController : UIViewController {
     }
     
     public func playSound() {
-        guard let url = Bundle.main.url(forResource: "alert", withExtension: "mp3") else { return }
-        
-        do {
-            try AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayback)
-            try AVAudioSession.sharedInstance().setActive(true)
-            
-            
-            player = try AVAudioPlayer(contentsOf: url)
-            guard let player = player else { return }
-            
-            player.play()
-            
-        } catch let error {
-            print(error.localizedDescription)
-        }
+  
     }
     
     // Rotate sun
     public func rotateSun() {
         UIView.animate(withDuration: 6.0, delay: 0.0, options: UIViewAnimationOptions.curveLinear, animations: {
             self.sunImageView.transform = self.sunImageView.transform.rotated(by: CGFloat(Double.pi))
-        }) { done in
+        }) { _ in
             self.rotateSun()
         }
     }
@@ -165,9 +173,9 @@ public class FruitViewController : UIViewController {
     public func blinkEyes() {
         UIView.animate(withDuration: 0.3, delay: 5.0, options: UIViewAnimationOptions.curveEaseInOut, animations: {
             self.eyesImageView.transform = CGAffineTransform(scaleX: 1.0, y: 0.1)
-        }, completion: { done in UIView.animate(withDuration: 0.3, delay: 0.0, options: UIViewAnimationOptions.curveEaseOut, animations: {
+        }, completion: { _ in UIView.animate(withDuration: 0.3, delay: 0.0, options: UIViewAnimationOptions.curveEaseOut, animations: {
             self.eyesImageView.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
-        }, completion: { done in
+        }, completion: { _ in
             self.blinkEyes()
         })
         })
@@ -177,7 +185,14 @@ public class FruitViewController : UIViewController {
 extension FruitViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     // MARK: - Handling Image Picker Selection
     
+    public func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        picker.dismiss(animated: true) {
+            self.sendMessage(message: "☉ No fruit, human? This is the last time I waste my time on Earth", seconds: 0.0)
+        }
+    }
+    
     public func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String: Any]) {
+        self.sendMessage(message: "☉ One second, human", seconds: 0.0)
         picker.dismiss(animated: true)
         
         // We always expect `imagePickerController(:didFinishPickingMediaWithInfo:)` to supply the original image.
@@ -186,13 +201,14 @@ extension FruitViewController: UIImagePickerControllerDelegate, UINavigationCont
 //        updateClassifications(for: image)
     }
 }
-//#-end-hidden-code
+
 
 let storyboard = UIStoryboard(name: "Main", bundle: nil)
 let view = storyboard.instantiateViewController(withIdentifier: "MainView") as! FruitViewController
+let nav = UINavigationController(rootViewController: view)
 
 // Present the view controller in the Live View window
-PlaygroundPage.current.liveView = view
+PlaygroundPage.current.liveView = nav
 
 /*:
  Testing one, two three.

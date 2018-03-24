@@ -1,9 +1,13 @@
 
 import UIKit
 import PlaygroundSupport
-import AVFoundation
+//import AVFoundation
+import CoreML
+import Vision
+
 
 @objc(FruitViewController)
+//@available(iOS 11.0, *)
 public class FruitViewController : UIViewController {
     // Scene images
     @IBOutlet weak var sunImageView: UIImageView!
@@ -77,7 +81,7 @@ public class FruitViewController : UIViewController {
         sendMessage(message: "☉ Hello human! I'm the Sun, creator of all tasty fruits on your planet Earth", seconds: 2.0)
         sendMessage(message: "☉ I can tell you about any fruit that you send to me", seconds: 6.0)
         sendMessage(message: "☉ Make sure to find a nearby fruit to begin", seconds: 10.0)
-        sendMessage(message: "☉ Then use your metal goggles (camera) to send me a fruit to explore", seconds: 14.0)
+        sendMessage(message: "☉ Then use your metal goggles (camera) to scan a fruit for me", seconds: 14.0)
         
         // Welcome completed
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.5 + 7.0 + 6.5) {
@@ -177,6 +181,83 @@ public class FruitViewController : UIViewController {
         })
         })
     }
+    
+    
+    /// - Tag: MLModelSetup
+    lazy var classificationRequest: VNCoreMLRequest = {
+        do {
+            /*
+             Use the Swift class `MobileNet` Core ML generates from the model.
+             To use a different Core ML classifier model, add it to the project
+             and replace `MobileNet` with that model's generated Swift class.
+             */
+            let model = try VNCoreMLModel(for: Fruit().model)
+            
+            let request = VNCoreMLRequest(model: model, completionHandler: { [weak self] request, error in
+                print("Process")
+                self?.processClassifications(for: request, error: error)
+            })
+            request.imageCropAndScaleOption = .centerCrop
+            return request
+        } catch {
+            self.messageLabel.text = "Failed to load Vision model"
+            fatalError("Failed to load Vision ML model: \(error)")
+        }
+    }()
+    
+    /// Updates the UI with the results of the classification.
+    /// - Tag: ProcessClassifications
+    func processClassifications(for request: VNRequest, error: Error?) {
+        DispatchQueue.main.async {
+            guard let results = request.results else {
+                self.messageLabel.text = "Unable to classify image.\n\(error!.localizedDescription)"
+                return
+            }
+            // The `results` will always be `VNClassificationObservation`s, as specified by the Core ML model in this project.
+            let classifications = results as! [VNClassificationObservation]
+            
+            if classifications.isEmpty {
+                self.messageLabel.text = "Nothing recognized."
+            } else {
+                // Display top classifications ranked by confidence in the UI.
+                let topClassifications = classifications.prefix(2)
+                let descriptions = topClassifications.map { classification in
+                    // Formats the classification for display; e.g. "(0.37) cliff, drop, drop-off".
+                    return String(format: "  (%.2f) %@", classification.confidence, classification.identifier)
+                }
+                self.messageLabel.text = "Classification:\n" + descriptions.joined(separator: "\n")
+            }
+        }
+    }
+    
+    
+    /// - Tag: PerformRequests
+    func updateClassifications(for image: UIImage) {
+//        classificationLabel.text = "Classifying..."
+        
+        let orientation =
+            CGImagePropertyOrientation(rawValue: UInt32(image.imageOrientation.rawValue))!
+
+        guard let ciImage = CIImage(image: image) else {
+            self.messageLabel.text = "Unable to create image from image"
+            fatalError("Unable to create \(CIImage.self) from \(image).")
+        }
+        
+        DispatchQueue.global(qos: .userInitiated).async {
+            let handler = VNImageRequestHandler(ciImage: ciImage, orientation: orientation)
+            do {
+                try handler.perform([self.classificationRequest])
+            } catch {
+                /*
+                 This handler catches general image processing errors. The `classificationRequest`'s
+                 completion handler `processClassifications(_:error:)` catches errors specific
+                 to processing that request.
+                 */
+                self.messageLabel.text = ("Failed to perform classification.\n\(error.localizedDescription)")
+            }
+        }
+    }
+    
 }
 
 extension FruitViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
@@ -229,13 +310,128 @@ extension FruitViewController: UIImagePickerControllerDelegate, UINavigationCont
     }
     
     public func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String: Any]) {
-        self.sendMessage(message: "☉ One second, human", seconds: 0.0)
         picker.dismiss(animated: true)
         
         // We always expect `imagePickerController(:didFinishPickingMediaWithInfo:)` to supply the original image.
-//        let image = info[UIImagePickerControllerOriginalImage] as! UIImage
-//        imageView.image = image
-//        updateClassifications(for: image)
+        let image = info[UIImagePickerControllerOriginalImage] as! UIImage
+        self.updateClassifications(for: image)
+    }
+}
+
+
+//
+// Fruit.swift
+//
+// This file was automatically generated and should not be edited.
+//
+
+import CoreML
+
+
+/// Model Prediction Input Type
+@available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *)
+class FruitInput : MLFeatureProvider {
+    
+    /// Input image as color (kCVPixelFormatType_32BGRA) image buffer, 227 pixels wide by 227 pixels high
+    var image: CVPixelBuffer
+    
+    var featureNames: Set<String> {
+        get {
+            return ["image"]
+        }
+    }
+    
+    func featureValue(for featureName: String) -> MLFeatureValue? {
+        if (featureName == "image") {
+            return MLFeatureValue(pixelBuffer: image)
+        }
+        return nil
+    }
+    
+    init(image: CVPixelBuffer) {
+        self.image = image
+    }
+}
+
+
+/// Model Prediction Output Type
+@available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *)
+class FruitOutput : MLFeatureProvider {
+    
+    /// Prediction probabilities as dictionary of strings to doubles
+    let labelProbability: [String : Double]
+    
+    /// Class label of top prediction as string value
+    let label: String
+    
+    var featureNames: Set<String> {
+        get {
+            return ["labelProbability", "label"]
+        }
+    }
+    
+    func featureValue(for featureName: String) -> MLFeatureValue? {
+        if (featureName == "labelProbability") {
+            return try! MLFeatureValue(dictionary: labelProbability as [NSObject : NSNumber])
+        }
+        if (featureName == "label") {
+            return MLFeatureValue(string: label)
+        }
+        return nil
+    }
+    
+    init(labelProbability: [String : Double], label: String) {
+        self.labelProbability = labelProbability
+        self.label = label
+    }
+}
+
+
+/// Class for model loading and prediction
+@available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *)
+class Fruit {
+    var model: MLModel
+    
+    /**
+     Construct a model with explicit path to mlmodel file
+     - parameters:
+     - url: the file url of the model
+     - throws: an NSError object that describes the problem
+     */
+    init(contentsOf url: URL) throws {
+        self.model = try MLModel(contentsOf: url)
+    }
+    
+    /// Construct a model that automatically loads the model from the app's bundle
+    convenience init() {
+        let bundle = Bundle(for: Fruit.self)
+        let assetPath = bundle.url(forResource: "Fruit", withExtension:"mlmodelc")
+        try! self.init(contentsOf: assetPath!)
+    }
+    
+    /**
+     Make a prediction using the structured interface
+     - parameters:
+     - input: the input to the prediction as FruitInput
+     - throws: an NSError object that describes the problem
+     - returns: the result of the prediction as FruitOutput
+     */
+    func prediction(input: FruitInput) throws -> FruitOutput {
+        let outFeatures = try model.prediction(from: input)
+        let result = FruitOutput(labelProbability: outFeatures.featureValue(for: "labelProbability")!.dictionaryValue as! [String : Double], label: outFeatures.featureValue(for: "label")!.stringValue)
+        return result
+    }
+    
+    /**
+     Make a prediction using the convenience interface
+     - parameters:
+     - image: Input image as color (kCVPixelFormatType_32BGRA) image buffer, 227 pixels wide by 227 pixels high
+     - throws: an NSError object that describes the problem
+     - returns: the result of the prediction as FruitOutput
+     */
+    func prediction(image: CVPixelBuffer) throws -> FruitOutput {
+        let input_ = FruitInput(image: image)
+        return try self.prediction(input: input_)
     }
 }
 

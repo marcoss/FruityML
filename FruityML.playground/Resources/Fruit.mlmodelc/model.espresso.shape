@@ -1,0 +1,256 @@
+{
+  "layer_shapes" : {
+    "fire6_relu_expand1x1" : {
+      "k" : 192,
+      "w" : 14,
+      "n" : 1,
+      "h" : 14
+    },
+    "fire7_relu_expand3x3" : {
+      "k" : 192,
+      "w" : 14,
+      "n" : 1,
+      "h" : 14
+    },
+    "fire5_concat" : {
+      "k" : 256,
+      "w" : 28,
+      "n" : 1,
+      "h" : 28
+    },
+    "fire9_concat" : {
+      "k" : 512,
+      "w" : 14,
+      "n" : 1,
+      "h" : 14
+    },
+    "fire2_relu_squeeze1x1" : {
+      "k" : 16,
+      "w" : 56,
+      "n" : 1,
+      "h" : 56
+    },
+    "fire7_relu_squeeze1x1" : {
+      "k" : 48,
+      "w" : 14,
+      "n" : 1,
+      "h" : 14
+    },
+    "fire4_relu_expand1x1" : {
+      "k" : 128,
+      "w" : 28,
+      "n" : 1,
+      "h" : 28
+    },
+    "fire4_concat" : {
+      "k" : 256,
+      "w" : 28,
+      "n" : 1,
+      "h" : 28
+    },
+    "fire6_relu_squeeze1x1" : {
+      "k" : 48,
+      "w" : 14,
+      "n" : 1,
+      "h" : 14
+    },
+    "fire5_relu_expand3x3" : {
+      "k" : 128,
+      "w" : 28,
+      "n" : 1,
+      "h" : 28
+    },
+    "pool10" : {
+      "k" : 1000,
+      "w" : 1,
+      "n" : 1,
+      "h" : 1
+    },
+    "fire2_relu_expand1x1" : {
+      "k" : 64,
+      "w" : 56,
+      "n" : 1,
+      "h" : 56
+    },
+    "fire8_concat" : {
+      "k" : 512,
+      "w" : 14,
+      "n" : 1,
+      "h" : 14
+    },
+    "fire9_relu_expand1x1" : {
+      "k" : 256,
+      "w" : 14,
+      "n" : 1,
+      "h" : 14
+    },
+    "labelProbability" : {
+      "k" : 22,
+      "w" : 1,
+      "n" : 1,
+      "h" : 1
+    },
+    "fire3_relu_expand3x3" : {
+      "k" : 64,
+      "w" : 56,
+      "n" : 1,
+      "h" : 56
+    },
+    "image" : {
+      "k" : 3,
+      "w" : 227,
+      "n" : 1,
+      "h" : 227
+    },
+    "fire7_relu_expand1x1" : {
+      "k" : 192,
+      "w" : 14,
+      "n" : 1,
+      "h" : 14
+    },
+    "fire8_relu_expand3x3" : {
+      "k" : 256,
+      "w" : 14,
+      "n" : 1,
+      "h" : 14
+    },
+    "relu_conv1" : {
+      "k" : 64,
+      "w" : 113,
+      "n" : 1,
+      "h" : 113
+    },
+    "fire5_relu_squeeze1x1" : {
+      "k" : 32,
+      "w" : 28,
+      "n" : 1,
+      "h" : 28
+    },
+    "relu_conv10" : {
+      "k" : 1000,
+      "w" : 14,
+      "n" : 1,
+      "h" : 14
+    },
+    "fire6_relu_expand3x3" : {
+      "k" : 192,
+      "w" : 14,
+      "n" : 1,
+      "h" : 14
+    },
+    "fire3_concat" : {
+      "k" : 128,
+      "w" : 56,
+      "n" : 1,
+      "h" : 56
+    },
+    "pool5" : {
+      "k" : 256,
+      "w" : 14,
+      "n" : 1,
+      "h" : 14
+    },
+    "fire4_relu_squeeze1x1" : {
+      "k" : 32,
+      "w" : 28,
+      "n" : 1,
+      "h" : 28
+    },
+    "fire9_relu_squeeze1x1" : {
+      "k" : 64,
+      "w" : 14,
+      "n" : 1,
+      "h" : 14
+    },
+    "fire7_concat" : {
+      "k" : 384,
+      "w" : 14,
+      "n" : 1,
+      "h" : 14
+    },
+    "fire5_relu_expand1x1" : {
+      "k" : 128,
+      "w" : 28,
+      "n" : 1,
+      "h" : 28
+    },
+    "pool3" : {
+      "k" : 128,
+      "w" : 28,
+      "n" : 1,
+      "h" : 28
+    },
+    "flatten" : {
+      "k" : 1000,
+      "w" : 1,
+      "n" : 1,
+      "h" : 1
+    },
+    "pool1" : {
+      "k" : 64,
+      "w" : 56,
+      "n" : 1,
+      "h" : 56
+    },
+    "fire3_relu_expand1x1" : {
+      "k" : 64,
+      "w" : 56,
+      "n" : 1,
+      "h" : 56
+    },
+    "fire2_concat" : {
+      "k" : 128,
+      "w" : 56,
+      "n" : 1,
+      "h" : 56
+    },
+    "fullyconnected0" : {
+      "k" : 22,
+      "w" : 1,
+      "n" : 1,
+      "h" : 1
+    },
+    "fire4_relu_expand3x3" : {
+      "k" : 128,
+      "w" : 28,
+      "n" : 1,
+      "h" : 28
+    },
+    "fire6_concat" : {
+      "k" : 384,
+      "w" : 14,
+      "n" : 1,
+      "h" : 14
+    },
+    "fire8_relu_expand1x1" : {
+      "k" : 256,
+      "w" : 14,
+      "n" : 1,
+      "h" : 14
+    },
+    "fire3_relu_squeeze1x1" : {
+      "k" : 16,
+      "w" : 56,
+      "n" : 1,
+      "h" : 56
+    },
+    "fire8_relu_squeeze1x1" : {
+      "k" : 64,
+      "w" : 14,
+      "n" : 1,
+      "h" : 14
+    },
+    "fire2_relu_expand3x3" : {
+      "k" : 64,
+      "w" : 56,
+      "n" : 1,
+      "h" : 56
+    },
+    "fire9_relu_expand3x3" : {
+      "k" : 256,
+      "w" : 14,
+      "n" : 1,
+      "h" : 14
+    }
+  }
+}

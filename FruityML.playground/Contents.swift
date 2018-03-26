@@ -5,36 +5,61 @@ import PlaygroundSupport
 import CoreML
 import Vision
 
-
 @objc(FruitViewController)
 //@available(iOS 11.0, *)
-public class FruitViewController : UIViewController {
-    // Scene images
+public class FruitViewController : UIViewController, UIPopoverPresentationControllerDelegate {
+    // Retrieves information about fruits
+    private lazy var fruits = Fruits()
+    
+    /// MLModelSetup
+    private lazy var classificationRequest: VNCoreMLRequest = {
+        // Load ML model
+        do {
+            let model = try VNCoreMLModel(for: Fruit().model)
+            
+            let request = VNCoreMLRequest(model: model, completionHandler: { [weak self] request, error in
+                self?.processClassifications(for: request, error: error)
+            })
+            request.imageCropAndScaleOption = .centerCrop
+            return request
+        } catch {
+            sendMessage(message: "Failed to load Vision model", seconds: 0.0)
+            fatalError("Failed to load Vision ML model: \(error)")
+        }
+    }()
+    
+    // Scene image views
     @IBOutlet weak var sunImageView: UIImageView!
     @IBOutlet weak var eyesImageView: UIImageView!
     @IBOutlet weak var hillsImageView: UIImageView!
     @IBOutlet weak var backgroundImageView: UIImageView!
     
-    // Photo button
+    // Button to take or select photo
     @IBOutlet weak var photoButton: UIButton!
-    
-    // Label
+
+    // Message label
     @IBOutlet weak var messageLabel: UILabel!
     
-    // Game is active
+    // Scene is active (used to cancel looping animations)
     private var isActive = true
     
     // AVPlayer
 //    private var player: AVAudioPlayer!
     
     // Keep track of cancellations for an easter egg
-    var numberOfCancellations = 0
+    private var numberOfCancellations = 0
     
     // When an intro message is fully played out
-    var hasWelcomedUser = false
+    private var hasWelcomedUser = false
     
-    // View will appear
+    // TODO: Debug
+    private var animator: UIDynamicAnimator!
+    private var gravity: UIGravityBehavior!
+    private var collision: UICollisionBehavior!
+    
+    // View did load
     public override func viewDidLoad() {
+        // Animate fade-in transition
         sunImageView.layer.opacity = 0.0
         eyesImageView.layer.opacity = 0.0
         messageLabel.alpha = 0.0
@@ -45,22 +70,49 @@ public class FruitViewController : UIViewController {
         hideNavigationBar()
     }
     
+    // View did appear
+    public override func viewDidAppear(_ animated: Bool) {
+        createView()
+
+        if let fruit = fruits.getFruit(name: "strawberry") {
+            displayFruit(fruit: fruit)
+        }
+        
+        super.viewDidAppear(animated)
+    }
+
     // Make nav bar clear (required for image picker)
-    public func hideNavigationBar() {
+    private func hideNavigationBar() {
         self.navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
         self.navigationController?.navigationBar.shadowImage = UIImage()
         self.navigationController?.navigationBar.isTranslucent = true
         self.navigationController?.view.backgroundColor = .clear
     }
     
-    // View did appear
-    public override func viewDidAppear(_ animated: Bool) {
-        createView()
-        super.viewDidAppear(animated)
+    private func displayFruit(fruit: Fruits.Fruit) {
+        print("Displaying \(fruit)")
+        
+        let label = UILabel()
+        label.text = fruit.emoji
+        label.adjustsFontSizeToFitWidth = true
+        label.font = UIFont.systemFont(ofSize: 100)
+        label.textAlignment = .center
+        label.frame = CGRect(x: (self.view.frame.width / 2)-50, y: 0, width: 100, height: 100)
+
+        self.view.addSubview(label)
+        
+        animator = UIDynamicAnimator(referenceView: view)
+        gravity = UIGravityBehavior(items: [label])
+        
+        collision = UICollisionBehavior(items: [label])
+        collision.translatesReferenceBoundsIntoBoundary = true
+        animator.addBehavior(collision)
+        
+        animator.addBehavior(gravity)
     }
     
     // Load the sun
-    public func createView() {
+    private func createView() {
         UIView.animate(withDuration: 1.5, delay: 0.0, options: UIViewAnimationOptions.curveEaseIn, animations: {
             self.sunImageView.layer.opacity = 1.0
             self.eyesImageView.layer.opacity = 1.0
@@ -74,8 +126,14 @@ public class FruitViewController : UIViewController {
         startWelcome()
     }
     
+    private func enableButtons() {
+        UIView.animate(withDuration: 1.0, delay: 0.0, options: UIViewAnimationOptions.curveEaseIn, animations: {
+            self.photoButton.alpha = 1.0
+        })
+    }
+    
     // Start messages
-    public func startWelcome() {
+    private func startWelcome() {
 //        blinkEyes()
         
         sendMessage(message: "☉ Hello human! I'm the Sun, creator of all tasty fruits on your planet Earth", seconds: 2.0)
@@ -83,13 +141,14 @@ public class FruitViewController : UIViewController {
         sendMessage(message: "☉ Make sure to find a nearby fruit to begin", seconds: 10.0)
         sendMessage(message: "☉ Then use your metal goggles (camera) to scan a fruit for me", seconds: 14.0)
         
-        // Welcome completed
+        // Welcome completed, enable photo button
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.5 + 7.0 + 6.5) {
             self.hasWelcomedUser = true
-            self.setupInteractivity()
+            self.enableButtons()
         }
     }
     
+    // Take photo action
     @IBAction func takePicture() {
         if (!self.hasWelcomedUser) {
             return
@@ -112,7 +171,7 @@ public class FruitViewController : UIViewController {
         photoSourcePicker.addAction(takePhoto)
         photoSourcePicker.addAction(choosePhoto)
         
-        // Hacky fix to prevent crashing on Playground
+        // Important fix to prevent crashing on Playground
         if let popoverController = photoSourcePicker.popoverPresentationController {
             popoverController.sourceView = view
             popoverController.sourceRect = CGRect(x: 0, y: view.bounds.size.height, width: view.bounds.size.width, height: 20.0)
@@ -128,12 +187,6 @@ public class FruitViewController : UIViewController {
         picker.delegate = self
         picker.sourceType = sourceType
         present(picker, animated: true, completion: nil)
-    }
-    
-    public func setupInteractivity() {
-        UIView.animate(withDuration: 1.0, delay: 0.0, options: UIViewAnimationOptions.curveEaseIn, animations: {
-            self.photoButton.alpha = 1.0
-        })
     }
     
     // Say message
@@ -171,6 +224,7 @@ public class FruitViewController : UIViewController {
     }
     
     // Blink the sun's eyes (careful they're hot)
+    // TODO: Debug on iPad
     public func blinkEyes() {
         UIView.animate(withDuration: 0.3, delay: 5.0, options: UIViewAnimationOptions.curveEaseInOut, animations: {
             self.eyesImageView.transform = CGAffineTransform(scaleX: 1.0, y: 0.1)
@@ -181,29 +235,6 @@ public class FruitViewController : UIViewController {
         })
         })
     }
-    
-    
-    /// - Tag: MLModelSetup
-    lazy var classificationRequest: VNCoreMLRequest = {
-        do {
-            /*
-             Use the Swift class `MobileNet` Core ML generates from the model.
-             To use a different Core ML classifier model, add it to the project
-             and replace `MobileNet` with that model's generated Swift class.
-             */
-            let model = try VNCoreMLModel(for: Fruit().model)
-            
-            let request = VNCoreMLRequest(model: model, completionHandler: { [weak self] request, error in
-                print("Process")
-                self?.processClassifications(for: request, error: error)
-            })
-            request.imageCropAndScaleOption = .centerCrop
-            return request
-        } catch {
-            self.messageLabel.text = "Failed to load Vision model"
-            fatalError("Failed to load Vision ML model: \(error)")
-        }
-    }()
     
     /// Updates the UI with the results of the classification.
     /// - Tag: ProcessClassifications
@@ -219,6 +250,11 @@ public class FruitViewController : UIViewController {
             if classifications.isEmpty {
                 self.messageLabel.text = "Nothing recognized."
             } else {
+                if let fruit = self.fruits.getFruit(name: classifications.first!.identifier) {
+                    self.displayFruit(fruit: fruit)
+                }
+  
+                // TODO: Debugging purposes
                 // Display top classifications ranked by confidence in the UI.
                 let topClassifications = classifications.prefix(2)
                 let descriptions = topClassifications.map { classification in
@@ -230,11 +266,8 @@ public class FruitViewController : UIViewController {
         }
     }
     
-    
-    /// - Tag: PerformRequests
-    func updateClassifications(for image: UIImage) {
-//        classificationLabel.text = "Classifying..."
-        
+    /// Classify an image from a model
+    private func handleClassification(for image: UIImage) {
         let orientation =
             CGImagePropertyOrientation(rawValue: UInt32(image.imageOrientation.rawValue))!
 
@@ -258,13 +291,36 @@ public class FruitViewController : UIViewController {
         }
     }
     
+    // Easter egg to end the game
+    private func quitGame() {
+        view.backgroundColor = UIColor.black
+        
+        isActive = false
+        
+        UIView.animate(withDuration: 0.5) {
+            self.photoButton.alpha = 0.0
+            self.eyesImageView.transform = CGAffineTransform(scaleX: 0, y: 0)
+            self.sunImageView.transform = CGAffineTransform(scaleX: 0, y: 0)
+        }
+        
+        UIView.animate(withDuration: 1.5, animations: {
+            self.hillsImageView.alpha = 0.2
+        })
+        
+        UIView.animate(withDuration: 3.0) {
+            self.backgroundImageView.alpha = 0.0
+            self.messageLabel.backgroundColor = UIColor(white: 1.0, alpha: 0.3)
+            self.sendMessage(message: "The Sun has left", seconds: 0.0)
+        }
+        
+    }
 }
 
 extension FruitViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     // MARK: - Handling Image Picker Selection
     
     public func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-        self.numberOfCancellations += 1
+        numberOfCancellations += 1
         
         let phrases = ["☉ No fruit, human? This is the last time I waste my time on Earth",
                        "☉ I always forget how unreliable you humans are",
@@ -285,36 +341,13 @@ extension FruitViewController: UIImagePickerControllerDelegate, UINavigationCont
         }
     }
     
-    // Easter egg to end the game
-    public func quitGame() {
-        self.view.backgroundColor = UIColor.black
-        
-        isActive = false
-        
-        UIView.animate(withDuration: 0.5) {
-            self.photoButton.alpha = 0.0
-            self.eyesImageView.transform = CGAffineTransform(scaleX: 0, y: 0)
-            self.sunImageView.transform = CGAffineTransform(scaleX: 0, y: 0)
-        }
-        
-        UIView.animate(withDuration: 1.5, animations: {
-            self.hillsImageView.alpha = 0.2
-        })
-        
-        UIView.animate(withDuration: 3.0) {
-            self.backgroundImageView.alpha = 0.0
-            self.messageLabel.backgroundColor = UIColor(white: 1.0, alpha: 0.3)
-            self.sendMessage(message: "Brrr...", seconds: 0.0)
-        }
-        
-    }
-    
+    // Image picker received image
     public func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String: Any]) {
         picker.dismiss(animated: true)
-        
-        // We always expect `imagePickerController(:didFinishPickingMediaWithInfo:)` to supply the original image.
+
+        // Send image to classifier
         let image = info[UIImagePickerControllerOriginalImage] as! UIImage
-        self.updateClassifications(for: image)
+        handleClassification(for: image)
     }
 }
 

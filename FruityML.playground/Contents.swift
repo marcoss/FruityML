@@ -435,6 +435,70 @@ class Fruit {
     }
 }
 
+public final class Fruits {
+    private final let fruitDictionary: [String : Fruit]
+
+    public struct Fruit {
+        // Name of fruit
+        let name: String!
+        
+        let emoji: String!
+        
+        // Calories
+        let calories: Int!
+
+        // Carbohydrates (grams)
+        let carbohydrates: Double!
+        
+        // Potassium (milligrams)
+        let potassium: Double!
+
+        // Sugar (grams)
+        let sugar: Double!
+        
+        // Protein (grams)
+        let protein: Double!
+        
+        // Fun fact about fruit
+        let funFact: String!
+    }
+    
+    public init() {
+        fruitDictionary = [
+            "strawberry" : Fruit(name: "Strawberry", emoji: "🍓", calories: 4, carbohydrates: 0.9, potassium: 18, sugar: 0.6, protein: 0.1, funFact: "There are 200 seeds on an average strawberry."),
+            "apple" : Fruit(name: "Apple", emoji: "🍎", calories: 95, carbohydrates: 25, potassium: 195, sugar: 19, protein: 0.5, funFact: "Apple trees take four to five years to produce their first fruit."),
+            "avocado" : Fruit(name: "Avocado", emoji: "🥑", calories: 234, carbohydrates: 12, potassium: 708, sugar: 1, protein: 2.9, funFact: "Americans eat 69 million pounds of avocados on Super Bowl Sunday."),
+            "banana" : Fruit(name: "Banana", emoji: "🍌", calories: 105, carbohydrates: 27, potassium: 422, sugar: 14, protein: 1.3, funFact: "Bananas float in water."),
+            "blackberry" : Fruit(name: "Blackberry", emoji: "⭐️", calories: 62, carbohydrates: 14, potassium: 233, sugar: 7, protein: 2, funFact: "Harvest time for blackberries run between the months of June to August."),
+            "blueberry" : Fruit(name: "Blueberry", emoji: "⭐️", calories: 85, carbohydrates: 21, potassium: 114, sugar: 15, protein: 1.1, funFact: "Blueberries are known to improve memory and motor skills."),
+            "cherry" : Fruit(name: "Cherry", emoji: "🍒", calories: 77, carbohydrates: 19, potassium: 268, sugar: 13, protein: 1.6, funFact: "Cherries contain natural melatonin which helps with inflammation and stress."),
+            "coconut" : Fruit(name: "Coconut", emoji: "🥥", calories: 1405, carbohydrates: 60, potassium: 1413, sugar: 25, protein: 13, funFact: "There are over 1,300 types of coconut, all originate from the Pacific or the Indian Ocean."),
+            "corn" : Fruit(name: "Corn", emoji: "🌽", calories: 606, carbohydrates: 123, potassium: 476, sugar: 5, protein: 16, funFact: "One acre of corn removes about 8 tons of carbon dioxide from the air in one growing season."),
+            "grapefruit" : Fruit(name: "Grapefruit", emoji: "🍊", calories: 52, carbohydrates: 13, potassium: 166, sugar: 8, protein: 1, funFact: "A single grapefruit tree can produce more than 1,500 pounds of fruit."),
+            "grapes" : Fruit(name: "Grapes", emoji: "🍇", calories: 62, carbohydrates: 16, potassium: 176, sugar: 15, protein: 0.6, funFact: "There are more than 8,000 varieties of grape from about 60 species."),
+            "kiwi" : Fruit(name: "Kiwi", emoji: "🥝", calories: 42, carbohydrates: 10, potassium: 215, sugar: 6, protein: 0.8, funFact: "Kiwi fruit contains two times more vitamin C than oranges."),
+            "lemon" : Fruit(name: "Lemon", emoji: "🍋", calories: 17, carbohydrates: 5, potassium: 80, sugar: 1.5, protein: 0.6, funFact: "The high acidity of lemons make them good cleaning aids."),
+            "lime" : Fruit(name: "Lime", emoji: "🍋", calories: 20, carbohydrates: 7, potassium: 68, sugar: 1.1, protein: 0.5, funFact: "Lime is a rich source of dietary fibers but has 4 times less vitamin C than a lemon."),
+            "orange" : Fruit(name: "Orange", emoji: "🍊", calories: 45, carbohydrates: 11, potassium: 174, sugar: 9, protein: 1, funFact: "Christopher Columbus brought the first orange seeds to America in 1493."),
+            "peach" : Fruit(name: "Peach", emoji: "🍑", calories: 59, carbohydrates: 14, potassium: 285, sugar: 13, protein: 1.4, funFact: "Peaches originate from China, they have been cultivated since at least 79 A.D."),
+            "pear" : Fruit(name: "Pear", emoji: "🍐", calories: 102, carbohydrates: 27, potassium: 206, sugar: 17, protein: 0.6, funFact: "Pears are rich source of dietary fibers, vitamins C and K and minerals."),
+            "pineapple" : Fruit(name: "Pineapple", emoji: "🍍", calories: 452, carbohydrates: 119, potassium: 986, sugar: 89, protein: 5, funFact: "It takes almost 3 years for a single pineapple to mature."),
+            "plum" : Fruit(name: "Plum", emoji: "⭐️", calories: 30, carbohydrates: 8, potassium: 104, sugar: 7, protein: 0.5, funFact: "Plum trees are grown on every continent except Antarctica."),
+            "raspberry" : Fruit(name: "Raspberry", emoji: "🍓", calories: 65, carbohydrates: 15, potassium: 186, sugar: 5, protein: 1.5, funFact: "Raspberries are believed to have originated in Turkey."),
+            "tomato" : Fruit(name: "Tomato", emoji: "🍅", calories: 22, carbohydrates: 5, potassium: 292, sugar: 3.2, protein: 1, funFact: "The biggest tomato fight in the world happens each year in Buñol, Spain."),
+            "watermelon" : Fruit(name: "Watermelon", emoji: "🍉", calories: 85, carbohydrates: 21, potassium: 314, sugar: 17, protein: 1.7, funFact: "Lycopene is a healthy antioxidant that gives watermelon its red color.")
+        ]
+    }
+
+    public func getFruit(name: String) -> Fruit? {
+        if let index = fruitDictionary.index(forKey: name) {
+            return fruitDictionary[index].value
+        }
+        
+        return nil
+    }
+}
+
 
 let storyboard = UIStoryboard(name: "Main", bundle: nil)
 let view = storyboard.instantiateViewController(withIdentifier: "MainView") as! FruitViewController

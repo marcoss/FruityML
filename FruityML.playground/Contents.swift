@@ -53,6 +53,7 @@ public class FruitViewController : UIViewController, UIPopoverPresentationContro
     
     // When an intro message is fully played out
     private var hasWelcomedUser = false
+    private var isBlink = false
     
     // TODO: Debug
     private var animator: UIDynamicAnimator!
@@ -66,13 +67,13 @@ public class FruitViewController : UIViewController, UIPopoverPresentationContro
     public override func viewDidLoad() {
         messageLabel.layer.zPosition = 100
         photoButton.layer.zPosition = 100
+    
         // Animate fade-in transition
         sunImageView.layer.opacity = 0.0
         eyesImageView.layer.opacity = 0.0
         messageLabel.alpha = 0.0
         photoButton.alpha = 0.0
         hillsImageView.alpha = 0.0
-        eyesImageView.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
         
         hideNavigationBar()
         
@@ -86,6 +87,8 @@ public class FruitViewController : UIViewController, UIPopoverPresentationContro
 //        if let fruit = fruits.getFruit(name: "pineapple") {
 //            displayFruit(fruit: fruit)
 //        }
+        
+        print("View did appear")
 
         super.viewDidAppear(animated)
     }
@@ -99,15 +102,9 @@ public class FruitViewController : UIViewController, UIPopoverPresentationContro
     }
     
     private func displayFruit(fruit: Fruits.Fruit!) {
-        print("Displaying \(fruit)")
-        
-        let myUtterance = AVSpeechUtterance(string: fruit.name)
-        myUtterance.rate = 0.45
-        synth.speak(myUtterance)
-        
         animator = UIDynamicAnimator(referenceView: view)
         
-        for i in 1...6 {
+        for _ in 1...6 {
             let label = UILabel()
             label.text = fruit.emoji
             label.layer.zPosition = 0
@@ -131,21 +128,16 @@ public class FruitViewController : UIViewController, UIPopoverPresentationContro
         collision = UICollisionBehavior(items: self.fruitLabels)
         collision.translatesReferenceBoundsIntoBoundary = true
         animator.addBehavior(collision)
-        
         animator.addBehavior(gravity)
-    }
-    
-    private func randVector() -> CGVector {
-        let xRand = randomNumber(inRange: -3...3)
-        let yRand = randomNumber(inRange: -3...3)
         
-        return CGVector(dx: xRand, dy: yRand)
-    }
-    
-    public func randomNumber<T : SignedInteger>(inRange range: ClosedRange<T> = 1...6) -> T {
-        let length = Int64(range.upperBound - range.lowerBound + 1)
-        let value = Int64(arc4random()) % length + Int64(range.lowerBound)
-        return T(value)
+        sendMessage(message: "👍🏽 This looks like a \(fruit.name!)", seconds: 0.0)
+        sendMessage(message: "😝 Fun fact: \(fruit.funFact!)", seconds: 3.0)
+        sendMessage(message: "👨‍💼 \(fruit.name!) Nutritional Facts:\nCalories: \(fruit.calories!)\nCarbohydrates: \(fruit.carbohydrates!)g\nPotassium: \(fruit.potassium!)mg\nSugar: \(fruit.sugar!)g\nProtein: \(fruit.protein!)g", seconds: 9.0)
+        
+        // Speak fruit
+        let utterance = AVSpeechUtterance(string: fruit.name)
+        utterance.rate = 0.45
+        synth.speak(utterance)
     }
     
     // Load the sun
@@ -159,6 +151,8 @@ public class FruitViewController : UIViewController, UIPopoverPresentationContro
         // Start rotating the sun
         rotateSun()
         
+        blinkEyes()
+        
         // Start to welcome user
         startWelcome()
     }
@@ -171,8 +165,6 @@ public class FruitViewController : UIViewController, UIPopoverPresentationContro
     
     // Start messages
     private func startWelcome() {
-//        blinkEyes()
-        
         sendMessage(message: "☉ Hello human! I'm the Sun, creator of all tasty fruits on your planet Earth", seconds: 2.0)
         sendMessage(message: "☉ I can tell you about any fruit that you send to me", seconds: 6.0)
         sendMessage(message: "☉ Make sure to find a nearby fruit to begin", seconds: 10.0)
@@ -269,14 +261,19 @@ public class FruitViewController : UIViewController, UIPopoverPresentationContro
     // Blink the sun's eyes (careful they're hot)
     // TODO: Debug on iPad
     public func blinkEyes() {
-        UIView.animate(withDuration: 0.3, delay: 5.0, options: UIViewAnimationOptions.curveEaseInOut, animations: {
-            self.eyesImageView.transform = CGAffineTransform(scaleX: 1.0, y: 0.1)
-        }, completion: { _ in UIView.animate(withDuration: 0.3, delay: 0.0, options: UIViewAnimationOptions.curveEaseOut, animations: {
-            self.eyesImageView.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
-        }, completion: { _ in
-            self.isActive ? self.blinkEyes() : nil
-        })
-        })
+        if (!isBlink) {
+            UIView.animate(withDuration: 0.2, delay: 5.0, options: UIViewAnimationOptions.curveEaseInOut, animations: {
+                self.isBlink = true
+                self.eyesImageView.transform = CGAffineTransform(scaleX: 1.0, y: 0.1)
+            }, completion: { _ in UIView.animate(withDuration: 0.2, delay: 0.0, options: UIViewAnimationOptions.curveEaseInOut, animations: {
+                self.isBlink = true
+                self.eyesImageView.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
+            }, completion: { _ in
+                self.isBlink = false
+                self.isActive ? self.blinkEyes() : nil
+            })
+            })
+        }
     }
     
     /// Updates the UI with the results of the classification.
@@ -297,14 +294,12 @@ public class FruitViewController : UIViewController, UIPopoverPresentationContro
                     self.displayFruit(fruit: fruit)
                 }
   
-                // TODO: Debugging purposes
                 // Display top classifications ranked by confidence in the UI.
                 let topClassifications = classifications.prefix(2)
                 let descriptions = topClassifications.map { classification in
                     // Formats the classification for display; e.g. "(0.37) cliff, drop, drop-off".
                     return String(format: "  (%.2f) %@", classification.confidence, classification.identifier)
                 }
-                self.messageLabel.text = "Classification:\n" + descriptions.joined(separator: "\n")
             }
         }
     }
@@ -355,7 +350,19 @@ public class FruitViewController : UIViewController, UIPopoverPresentationContro
             self.messageLabel.backgroundColor = UIColor(white: 1.0, alpha: 0.3)
             self.sendMessage(message: "The Sun has left", seconds: 0.0)
         }
+    }
+    
+    private func randVector() -> CGVector {
+        let xRand = randomNumber(inRange: -3...3)
+        let yRand = randomNumber(inRange: -3...3)
         
+        return CGVector(dx: xRand, dy: yRand)
+    }
+    
+    private func randomNumber<T : SignedInteger>(inRange range: ClosedRange<T> = 1...6) -> T {
+        let length = Int64(range.upperBound - range.lowerBound + 1)
+        let value = Int64(arc4random()) % length + Int64(range.lowerBound)
+        return T(value)
     }
 }
 
@@ -578,10 +585,10 @@ public final class Fruits {
 
 let storyboard = UIStoryboard(name: "Main", bundle: nil)
 let view = storyboard.instantiateViewController(withIdentifier: "MainView") as! FruitViewController
-//let nav = UINavigationController(rootViewController: view)
+let nav = UINavigationController(rootViewController: view)
 
 // Present the view controller in the Live View window
-PlaygroundPage.current.liveView = UINavigationController(rootViewController: view)
+PlaygroundPage.current.liveView = nav
 
 /*:
  Testing one, two three.

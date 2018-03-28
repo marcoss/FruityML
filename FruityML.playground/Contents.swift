@@ -1,7 +1,6 @@
-
-import UIKit
 import PlaygroundSupport
-//import AVFoundation
+import UIKit
+import AVFoundation
 import CoreML
 import Vision
 
@@ -27,6 +26,9 @@ public class FruitViewController : UIViewController, UIPopoverPresentationContro
             fatalError("Failed to load Vision ML model: \(error)")
         }
     }()
+    
+    // For uttering fruit names
+    private lazy var synth = AVSpeechSynthesizer()
     
     // Scene image views
     @IBOutlet weak var sunImageView: UIImageView!
@@ -57,8 +59,13 @@ public class FruitViewController : UIViewController, UIPopoverPresentationContro
     private var gravity: UIGravityBehavior!
     private var collision: UICollisionBehavior!
     
+    // Emojis to "blast" the user
+    private lazy var fruitLabels = [UILabel]()
+    
     // View did load
     public override func viewDidLoad() {
+        messageLabel.layer.zPosition = 100
+        photoButton.layer.zPosition = 100
         // Animate fade-in transition
         sunImageView.layer.opacity = 0.0
         eyesImageView.layer.opacity = 0.0
@@ -68,16 +75,18 @@ public class FruitViewController : UIViewController, UIPopoverPresentationContro
         eyesImageView.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
         
         hideNavigationBar()
+        
+        super.viewDidLoad()
     }
     
     // View did appear
     public override func viewDidAppear(_ animated: Bool) {
         createView()
 
-        if let fruit = fruits.getFruit(name: "strawberry") {
-            displayFruit(fruit: fruit)
-        }
-        
+//        if let fruit = fruits.getFruit(name: "pineapple") {
+//            displayFruit(fruit: fruit)
+//        }
+
         super.viewDidAppear(animated)
     }
 
@@ -89,26 +98,54 @@ public class FruitViewController : UIViewController, UIPopoverPresentationContro
         self.navigationController?.view.backgroundColor = .clear
     }
     
-    private func displayFruit(fruit: Fruits.Fruit) {
+    private func displayFruit(fruit: Fruits.Fruit!) {
         print("Displaying \(fruit)")
         
-        let label = UILabel()
-        label.text = fruit.emoji
-        label.adjustsFontSizeToFitWidth = true
-        label.font = UIFont.systemFont(ofSize: 100)
-        label.textAlignment = .center
-        label.frame = CGRect(x: (self.view.frame.width / 2)-50, y: 0, width: 100, height: 100)
-
-        self.view.addSubview(label)
+        let myUtterance = AVSpeechUtterance(string: fruit.name)
+        myUtterance.rate = 0.45
+        synth.speak(myUtterance)
         
         animator = UIDynamicAnimator(referenceView: view)
-        gravity = UIGravityBehavior(items: [label])
         
-        collision = UICollisionBehavior(items: [label])
+        for i in 1...6 {
+            let label = UILabel()
+            label.text = fruit.emoji
+            label.layer.zPosition = 0
+            label.adjustsFontSizeToFitWidth = true
+            label.font = UIFont.systemFont(ofSize: 100)
+            label.textAlignment = .center
+            label.frame = CGRect(x: (self.view.frame.width / 2)-40, y: 200, width: 80, height: 60)
+            
+            self.view.addSubview(label)
+            
+            self.fruitLabels.append(label)
+        
+            let push = UIPushBehavior(items: [label], mode: UIPushBehaviorMode.instantaneous)
+            push.pushDirection = randVector()
+            
+            animator.addBehavior(push)
+        }
+        
+        gravity = UIGravityBehavior(items: self.fruitLabels)
+        
+        collision = UICollisionBehavior(items: self.fruitLabels)
         collision.translatesReferenceBoundsIntoBoundary = true
         animator.addBehavior(collision)
         
         animator.addBehavior(gravity)
+    }
+    
+    private func randVector() -> CGVector {
+        let xRand = randomNumber(inRange: -3...3)
+        let yRand = randomNumber(inRange: -3...3)
+        
+        return CGVector(dx: xRand, dy: yRand)
+    }
+    
+    public func randomNumber<T : SignedInteger>(inRange range: ClosedRange<T> = 1...6) -> T {
+        let length = Int64(range.upperBound - range.lowerBound + 1)
+        let value = Int64(arc4random()) % length + Int64(range.lowerBound)
+        return T(value)
     }
     
     // Load the sun
@@ -152,6 +189,12 @@ public class FruitViewController : UIViewController, UIPopoverPresentationContro
     @IBAction func takePicture() {
         if (!self.hasWelcomedUser) {
             return
+        }
+        
+        // Remove emojis from view
+        for label in fruitLabels {
+            label.removeFromSuperview()
+            fruitLabels.removeAll()
         }
 
         // Important to cast in order to send alerts/segues
@@ -535,10 +578,10 @@ public final class Fruits {
 
 let storyboard = UIStoryboard(name: "Main", bundle: nil)
 let view = storyboard.instantiateViewController(withIdentifier: "MainView") as! FruitViewController
-let nav = UINavigationController(rootViewController: view)
+//let nav = UINavigationController(rootViewController: view)
 
 // Present the view controller in the Live View window
-PlaygroundPage.current.liveView = nav
+PlaygroundPage.current.liveView = UINavigationController(rootViewController: view)
 
 /*:
  Testing one, two three.

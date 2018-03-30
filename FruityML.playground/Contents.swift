@@ -1,11 +1,55 @@
+/*:
+ 
+ # 🍎 Fruity ML
+ **Fruity ML** is an interactive Swift Playground for iPad that identifies over **22** different fruits using CoreML with a highly-trained image classification model. The user is presented with an animated sun character and is then prompted to use their camera to analyze a photo of a fruit.
+ 
+ Upon analysis, the user is instantly presented with information about the fruit the image classifer model is most confident in, such as:
+ 1. A synthesized voice pronouncing the fruit
+ 2. A fun fact about the fruit's origin and use
+ 3. Nutritional facts such as: *calories, carbohydrates, potassium, sugar, and protein*
+ 
+ - Note:
+ For demonstration purposes, this classifer may think something outrageous (e.g. a dog is a banana). This means not having actual fruits nearby will not ruin the experience.
+
+ ## ⭐️ Inspiration
+ My inspiration for this playground was my confusing times walking through the produce aisle in grocery stores several years ago. I couldn't identify many different fruits, let alone learn about their health benefits. This app allows anyone to identify fruit and see their nutritional facts in a fun way!
+ 
+ 
+ ## 📈 Training the Model
+ The model was created and trained using Apple's *Turi Create* framework using a data set of roughly **over 17,000** different fruit images. The model was compiled in roughly 6 hours with over 9,600 training iterations. The model architecture chosen was SqueezeNet v1.1 due to its small size and accurate efficiency.
+ 
+  - - -
+ ![Training all the images of fruits](trainingset.png)
+ ![Success: an optimal solution was found](compilation.png)
+  - - -
+ 
+ 
+ ## 🚀 iOS Technologies Used
+ - UIKit
+ - CoreML
+ - Vision
+ - AVFoundation
+ 
+ 
+ ## 😀 For Best Experience
+ - This neural network is intentionally imbalanced, meaning it will tend to recognize "not fruit" objects as fruits. If there are no fruit nearby, the **Playground will still work in demonstration.**
+ - Use an iPad in **landscape** mode, although constraints will still work in portrait, the screen estate is limited and some messages will be clipped.
+ 
+ * Callout(🥚 Easter Egg Tip):
+ Try choosing an image and cancelling it for a few times to see what happens.
+ 
+ 
+ */
+
+//#-hidden-code
 import PlaygroundSupport
 import UIKit
 import AVFoundation
 import CoreML
 import Vision
 
+// MARK: FruitViewController
 @objc(FruitViewController)
-//@available(iOS 11.0, *)
 public class FruitViewController : UIViewController, UIPopoverPresentationControllerDelegate {
     // Retrieves information about fruits
     private lazy var fruits = Fruits()
@@ -46,7 +90,7 @@ public class FruitViewController : UIViewController, UIPopoverPresentationContro
     private var isActive = true
     
     // AVPlayer
-//    private var player: AVAudioPlayer!
+    private var player: AVAudioPlayer!
     
     // Keep track of cancellations for an easter egg
     private var numberOfCancellations = 0
@@ -54,6 +98,7 @@ public class FruitViewController : UIViewController, UIPopoverPresentationContro
     // When an intro message is fully played out
     private var hasWelcomedUser = false
     private var isBlink = false
+    private var isTalking = false
     
     // TODO: Debug
     private var animator: UIDynamicAnimator!
@@ -83,13 +128,6 @@ public class FruitViewController : UIViewController, UIPopoverPresentationContro
     // View did appear
     public override func viewDidAppear(_ animated: Bool) {
         createView()
-
-//        if let fruit = fruits.getFruit(name: "pineapple") {
-//            displayFruit(fruit: fruit)
-//        }
-        
-        print("View did appear")
-
         super.viewDidAppear(animated)
     }
 
@@ -101,45 +139,6 @@ public class FruitViewController : UIViewController, UIPopoverPresentationContro
         self.navigationController?.view.backgroundColor = .clear
     }
     
-    private func displayFruit(fruit: Fruits.Fruit!) {
-        animator = UIDynamicAnimator(referenceView: view)
-        
-        for _ in 1...6 {
-            let label = UILabel()
-            label.text = fruit.emoji
-            label.layer.zPosition = 0
-            label.adjustsFontSizeToFitWidth = true
-            label.font = UIFont.systemFont(ofSize: 100)
-            label.textAlignment = .center
-            label.frame = CGRect(x: (self.view.frame.width / 2)-40, y: 200, width: 80, height: 60)
-            
-            self.view.addSubview(label)
-            
-            self.fruitLabels.append(label)
-        
-            let push = UIPushBehavior(items: [label], mode: UIPushBehaviorMode.instantaneous)
-            push.pushDirection = randVector()
-            
-            animator.addBehavior(push)
-        }
-        
-        gravity = UIGravityBehavior(items: self.fruitLabels)
-        
-        collision = UICollisionBehavior(items: self.fruitLabels)
-        collision.translatesReferenceBoundsIntoBoundary = true
-        animator.addBehavior(collision)
-        animator.addBehavior(gravity)
-        
-        sendMessage(message: "👍🏽 This looks like a \(fruit.name!)", seconds: 0.0)
-        sendMessage(message: "😝 Fun fact: \(fruit.funFact!)", seconds: 3.0)
-        sendMessage(message: "👨‍💼 \(fruit.name!) Nutritional Facts:\nCalories: \(fruit.calories!)\nCarbohydrates: \(fruit.carbohydrates!)g\nPotassium: \(fruit.potassium!)mg\nSugar: \(fruit.sugar!)g\nProtein: \(fruit.protein!)g", seconds: 9.0)
-        
-        // Speak fruit
-        let utterance = AVSpeechUtterance(string: fruit.name)
-        utterance.rate = 0.45
-        synth.speak(utterance)
-    }
-    
     // Load the sun
     private func createView() {
         UIView.animate(withDuration: 1.5, delay: 0.0, options: UIViewAnimationOptions.curveEaseIn, animations: {
@@ -148,25 +147,25 @@ public class FruitViewController : UIViewController, UIPopoverPresentationContro
             self.hillsImageView.layer.opacity = 1.0
         })
         
-        // Start rotating the sun
+        // Start sun animations for scene
         rotateSun()
-        
         blinkEyes()
         
         // Start to welcome user
         startWelcome()
     }
     
+    // Enable photo button
     private func enableButtons() {
         UIView.animate(withDuration: 1.0, delay: 0.0, options: UIViewAnimationOptions.curveEaseIn, animations: {
             self.photoButton.alpha = 1.0
         })
     }
     
-    // Start messages
+    // Start welcome messages on init
     private func startWelcome() {
         sendMessage(message: "☉ Hello human! I'm the Sun, creator of all tasty fruits on your planet Earth", seconds: 2.0)
-        sendMessage(message: "☉ I can tell you about any fruit that you send to me", seconds: 6.0)
+        sendMessage(message: "☉ I can tell you about any fruit that you take a photo of", seconds: 6.0)
         sendMessage(message: "☉ Make sure to find a nearby fruit to begin", seconds: 10.0)
         sendMessage(message: "☉ Then use your metal goggles (camera) to scan a fruit for me", seconds: 14.0)
         
@@ -224,29 +223,103 @@ public class FruitViewController : UIViewController, UIPopoverPresentationContro
         present(picker, animated: true, completion: nil)
     }
     
-    // Say message
+    // Send message from sun
     public func sendMessage(message: String, seconds: Double) {
-        // Delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
-            // Fade out
+        // Prevent multiple messages from coming at once
+        if (!isTalking) {
+            // Setup delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
+                // Display
+                self.displayMessage(message: message)
+            }
+        }
+    }
+    
+    // Implementation of send message
+    private func displayMessage(message: String) {
+        // Prevent multiple messages from coming at once
+        if (!isTalking) {
             UIView.animate(withDuration: 0.5, animations: {
+                self.isTalking = true
                 self.messageLabel.alpha = 0.0
             }, completion: { _ in
                 // Replace label
                 self.messageLabel.text = message
-
+                
                 // Fade in
                 UIView.animate(withDuration: 0.5, delay: 0.25, options: UIViewAnimationOptions.curveEaseInOut, animations: {
                     self.messageLabel.alpha = 1.0
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) {
+                        self.playSound()
+                    }
+                    
                 }, completion: { _ in
-                    self.playSound()
+                    self.isTalking = false
                 })
             })
         }
     }
     
-    // TODO: Add sound
+    // Play message sound
     public func playSound() {
+        if let path = Bundle.main.path(forResource: "alert", ofType: "mp3") {
+            let url = URL(fileURLWithPath: path)
+            
+            do {
+                player = try AVAudioPlayer(contentsOf: url)
+                player?.play()
+            } catch {
+                // couldn't play
+            }
+        }
+    }
+    
+    private func explodeEmoji(emoji: String) {
+        for _ in 1...12 {
+            let label = UILabel()
+            label.text = emoji
+            label.layer.zPosition = 0
+            label.adjustsFontSizeToFitWidth = true
+            label.font = UIFont.systemFont(ofSize: 100)
+            label.textAlignment = .center
+            label.frame = CGRect(x: (self.view.frame.width / 2)-40, y: 200, width: 80, height: 60)
+            
+            self.view.addSubview(label)
+            
+            self.fruitLabels.append(label)
+            
+            let push = UIPushBehavior(items: [label], mode: UIPushBehaviorMode.instantaneous)
+            push.pushDirection = randVector()
+            
+            animator.addBehavior(push)
+        }
+        
+        gravity = UIGravityBehavior(items: self.fruitLabels)
+        collision = UICollisionBehavior(items: self.fruitLabels)
+        collision.translatesReferenceBoundsIntoBoundary = true
+        animator.addBehavior(collision)
+        animator.addBehavior(gravity)
+    }
+    
+    // MARK: FruitViewController View Animations
+    // Fruit was classified, display to user
+    private func displayFruit(fruit: Fruits.Fruit!) {
+        // Emoji explosion effect
+        animator = UIDynamicAnimator(referenceView: view)
+        
+        // Explode effect
+        explodeEmoji(emoji: fruit.emoji!)
+        
+        // Send messages
+        sendMessage(message: "☉ This looks like a \(fruit.name!) \(fruit.emoji!)", seconds: 0.0)
+        sendMessage(message: "☉ Fun fact: \(fruit.funFact!) 😝", seconds: 3.5)
+        sendMessage(message: "\(fruit.emoji!) \(fruit.name!) Nutritional Facts:\nCalories: \(fruit.calories!)\nCarbohydrates: \(fruit.carbohydrates!)g\nPotassium: \(fruit.potassium!)mg\nSugar: \(fruit.sugar!)g\nProtein: \(fruit.protein!)g", seconds: 9.0)
+        
+        // Utter fruit name
+        let utterance = AVSpeechUtterance(string: fruit.name)
+        utterance.rate = 0.45
+        synth.speak(utterance)
     }
     
     // Rotate sun
@@ -276,6 +349,7 @@ public class FruitViewController : UIViewController, UIPopoverPresentationContro
         }
     }
     
+    // MARK: Image Classification Handlers
     /// Updates the UI with the results of the classification.
     /// - Tag: ProcessClassifications
     func processClassifications(for request: VNRequest, error: Error?) {
@@ -335,23 +409,22 @@ public class FruitViewController : UIViewController, UIPopoverPresentationContro
         
         isActive = false
         
-        UIView.animate(withDuration: 0.5) {
+        self.explodeEmoji(emoji: "💨")
+        
+        UIView.animate(withDuration: 1.0) {
             self.photoButton.alpha = 0.0
-            self.eyesImageView.transform = CGAffineTransform(scaleX: 0, y: 0)
+            self.eyesImageView.alpha = 0.0
+            self.sunImageView.alpha = 0.0
             self.sunImageView.transform = CGAffineTransform(scaleX: 0, y: 0)
         }
-        
-        UIView.animate(withDuration: 1.5, animations: {
-            self.hillsImageView.alpha = 0.2
-        })
         
         UIView.animate(withDuration: 3.0) {
             self.backgroundImageView.alpha = 0.0
             self.messageLabel.backgroundColor = UIColor(white: 1.0, alpha: 0.3)
-            self.sendMessage(message: "The Sun has left", seconds: 0.0)
         }
     }
     
+    // MARK: Utility functions
     private func randVector() -> CGVector {
         let xRand = randomNumber(inRange: -3...3)
         let yRand = randomNumber(inRange: -3...3)
@@ -359,13 +432,80 @@ public class FruitViewController : UIViewController, UIPopoverPresentationContro
         return CGVector(dx: xRand, dy: yRand)
     }
     
+    // Generate a random number in a range, used for emoji "explosion" effect
     private func randomNumber<T : SignedInteger>(inRange range: ClosedRange<T> = 1...6) -> T {
         let length = Int64(range.upperBound - range.lowerBound + 1)
         let value = Int64(arc4random()) % length + Int64(range.lowerBound)
         return T(value)
     }
+    
+    // MARK: Fruit Class Data
+    public final class Fruits: NSObject {
+        public final let fruitDictionary: [String : Fruit]
+        
+        public struct Fruit {
+            // Name of fruit
+            let name: String!
+            
+            let emoji: String!
+            
+            // Calories
+            let calories: Int!
+            
+            // Carbohydrates (grams)
+            let carbohydrates: Double!
+            
+            // Potassium (milligrams)
+            let potassium: Double!
+            
+            // Sugar (grams)
+            let sugar: Double!
+            
+            // Protein (grams)
+            let protein: Double!
+            
+            // Fun fact about fruit
+            let funFact: String!
+        }
+        
+        public override init() {
+            fruitDictionary = [
+                "strawberry" : Fruit(name: "Strawberry", emoji: "🍓", calories: 4, carbohydrates: 0.9, potassium: 18, sugar: 0.6, protein: 0.1, funFact: "There are 200 seeds on an average strawberry."),
+                "apple" : Fruit(name: "Apple", emoji: "🍎", calories: 95, carbohydrates: 25, potassium: 195, sugar: 19, protein: 0.5, funFact: "Apple trees take four to five years to produce their first fruit."),
+                "avocado" : Fruit(name: "Avocado", emoji: "🥑", calories: 234, carbohydrates: 12, potassium: 708, sugar: 1, protein: 2.9, funFact: "Americans eat 69 million pounds of avocados on Super Bowl Sunday."),
+                "banana" : Fruit(name: "Banana", emoji: "🍌", calories: 105, carbohydrates: 27, potassium: 422, sugar: 14, protein: 1.3, funFact: "Bananas float in water."),
+                "blackberry" : Fruit(name: "Blackberry", emoji: "⭐️", calories: 62, carbohydrates: 14, potassium: 233, sugar: 7, protein: 2, funFact: "Harvest time for blackberries run between the months of June to August."),
+                "blueberry" : Fruit(name: "Blueberry", emoji: "⭐️", calories: 85, carbohydrates: 21, potassium: 114, sugar: 15, protein: 1.1, funFact: "Blueberries are known to improve memory and motor skills."),
+                "cherry" : Fruit(name: "Cherry", emoji: "🍒", calories: 77, carbohydrates: 19, potassium: 268, sugar: 13, protein: 1.6, funFact: "Cherries contain natural melatonin which helps with inflammation and stress."),
+                "coconut" : Fruit(name: "Coconut", emoji: "🥥", calories: 1405, carbohydrates: 60, potassium: 1413, sugar: 25, protein: 13, funFact: "There are over 1,300 types of coconut, all originate from the Pacific or the Indian Ocean."),
+                "corn" : Fruit(name: "Corn", emoji: "🌽", calories: 606, carbohydrates: 123, potassium: 476, sugar: 5, protein: 16, funFact: "One acre of corn removes about 8 tons of carbon dioxide from the air in one growing season."),
+                "grapefruit" : Fruit(name: "Grapefruit", emoji: "🍊", calories: 52, carbohydrates: 13, potassium: 166, sugar: 8, protein: 1, funFact: "A single grapefruit tree can produce more than 1,500 pounds of fruit."),
+                "grapes" : Fruit(name: "Grapes", emoji: "🍇", calories: 62, carbohydrates: 16, potassium: 176, sugar: 15, protein: 0.6, funFact: "There are more than 8,000 varieties of grape from about 60 species."),
+                "kiwi" : Fruit(name: "Kiwi", emoji: "🥝", calories: 42, carbohydrates: 10, potassium: 215, sugar: 6, protein: 0.8, funFact: "Kiwi fruit contains two times more vitamin C than oranges."),
+                "lemon" : Fruit(name: "Lemon", emoji: "🍋", calories: 17, carbohydrates: 5, potassium: 80, sugar: 1.5, protein: 0.6, funFact: "The high acidity of lemons make them good cleaning aids."),
+                "lime" : Fruit(name: "Lime", emoji: "🍋", calories: 20, carbohydrates: 7, potassium: 68, sugar: 1.1, protein: 0.5, funFact: "Lime is a rich source of dietary fibers but has 4 times less vitamin C than a lemon."),
+                "orange" : Fruit(name: "Orange", emoji: "🍊", calories: 45, carbohydrates: 11, potassium: 174, sugar: 9, protein: 1, funFact: "Christopher Columbus brought the first orange seeds to America in 1493."),
+                "peach" : Fruit(name: "Peach", emoji: "🍑", calories: 59, carbohydrates: 14, potassium: 285, sugar: 13, protein: 1.4, funFact: "Peaches originate from China, they have been cultivated since at least 79 A.D."),
+                "pear" : Fruit(name: "Pear", emoji: "🍐", calories: 102, carbohydrates: 27, potassium: 206, sugar: 17, protein: 0.6, funFact: "Pears are rich source of dietary fibers, vitamins C and K and minerals."),
+                "pineapple" : Fruit(name: "Pineapple", emoji: "🍍", calories: 452, carbohydrates: 119, potassium: 986, sugar: 89, protein: 5, funFact: "It takes almost 3 years for a single pineapple to mature."),
+                "plum" : Fruit(name: "Plum", emoji: "⭐️", calories: 30, carbohydrates: 8, potassium: 104, sugar: 7, protein: 0.5, funFact: "Plum trees are grown on every continent except Antarctica."),
+                "raspberry" : Fruit(name: "Raspberry", emoji: "🍓", calories: 65, carbohydrates: 15, potassium: 186, sugar: 5, protein: 1.5, funFact: "Raspberries are believed to have originated in Turkey."),
+                "tomato" : Fruit(name: "Tomato", emoji: "🍅", calories: 22, carbohydrates: 5, potassium: 292, sugar: 3.2, protein: 1, funFact: "The biggest tomato fight in the world happens each year in Buñol, Spain."),
+                "watermelon" : Fruit(name: "Watermelon", emoji: "🍉", calories: 85, carbohydrates: 21, potassium: 314, sugar: 17, protein: 1.7, funFact: "Lycopene is a healthy antioxidant that gives watermelon its red color.")
+            ]
+        }
+        
+        public func getFruit(name: String) -> Fruit? {
+            if let index = fruitDictionary.index(forKey: name) {
+                return fruitDictionary[index].value
+            }
+            
+            return nil
+        }
+    }
 }
 
+// MARK: FruitViewController Image Picker Extensions
 extension FruitViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     // MARK: - Handling Image Picker Selection
     
@@ -377,8 +517,7 @@ extension FruitViewController: UIImagePickerControllerDelegate, UINavigationCont
                        "☉ Cancel on me again and watch what happens to your planet",
                        "☉ Forget it, human, I hear there's life on Mars I can test on",
                        "☉ Look, human, I need your dedication to this experiment",
-                       "☉ Send me a photo or I'm leaving to another planet",
-                       "☉ Your species was never as smart as the colony on Jupit... Nevermind"]
+                       "☉ Send me a photo or I'm leaving to another planet"]
         let i = Int(arc4random_uniform(UInt32(phrases.count)))
 
         picker.dismiss(animated: true) {
@@ -402,6 +541,7 @@ extension FruitViewController: UIImagePickerControllerDelegate, UINavigationCont
 }
 
 
+// MARK: Fruit CoreML Models
 //
 // Fruit.swift
 //
@@ -518,70 +658,7 @@ class Fruit {
     }
 }
 
-public final class Fruits {
-    private final let fruitDictionary: [String : Fruit]
-
-    public struct Fruit {
-        // Name of fruit
-        let name: String!
-        
-        let emoji: String!
-        
-        // Calories
-        let calories: Int!
-
-        // Carbohydrates (grams)
-        let carbohydrates: Double!
-        
-        // Potassium (milligrams)
-        let potassium: Double!
-
-        // Sugar (grams)
-        let sugar: Double!
-        
-        // Protein (grams)
-        let protein: Double!
-        
-        // Fun fact about fruit
-        let funFact: String!
-    }
-    
-    public init() {
-        fruitDictionary = [
-            "strawberry" : Fruit(name: "Strawberry", emoji: "🍓", calories: 4, carbohydrates: 0.9, potassium: 18, sugar: 0.6, protein: 0.1, funFact: "There are 200 seeds on an average strawberry."),
-            "apple" : Fruit(name: "Apple", emoji: "🍎", calories: 95, carbohydrates: 25, potassium: 195, sugar: 19, protein: 0.5, funFact: "Apple trees take four to five years to produce their first fruit."),
-            "avocado" : Fruit(name: "Avocado", emoji: "🥑", calories: 234, carbohydrates: 12, potassium: 708, sugar: 1, protein: 2.9, funFact: "Americans eat 69 million pounds of avocados on Super Bowl Sunday."),
-            "banana" : Fruit(name: "Banana", emoji: "🍌", calories: 105, carbohydrates: 27, potassium: 422, sugar: 14, protein: 1.3, funFact: "Bananas float in water."),
-            "blackberry" : Fruit(name: "Blackberry", emoji: "⭐️", calories: 62, carbohydrates: 14, potassium: 233, sugar: 7, protein: 2, funFact: "Harvest time for blackberries run between the months of June to August."),
-            "blueberry" : Fruit(name: "Blueberry", emoji: "⭐️", calories: 85, carbohydrates: 21, potassium: 114, sugar: 15, protein: 1.1, funFact: "Blueberries are known to improve memory and motor skills."),
-            "cherry" : Fruit(name: "Cherry", emoji: "🍒", calories: 77, carbohydrates: 19, potassium: 268, sugar: 13, protein: 1.6, funFact: "Cherries contain natural melatonin which helps with inflammation and stress."),
-            "coconut" : Fruit(name: "Coconut", emoji: "🥥", calories: 1405, carbohydrates: 60, potassium: 1413, sugar: 25, protein: 13, funFact: "There are over 1,300 types of coconut, all originate from the Pacific or the Indian Ocean."),
-            "corn" : Fruit(name: "Corn", emoji: "🌽", calories: 606, carbohydrates: 123, potassium: 476, sugar: 5, protein: 16, funFact: "One acre of corn removes about 8 tons of carbon dioxide from the air in one growing season."),
-            "grapefruit" : Fruit(name: "Grapefruit", emoji: "🍊", calories: 52, carbohydrates: 13, potassium: 166, sugar: 8, protein: 1, funFact: "A single grapefruit tree can produce more than 1,500 pounds of fruit."),
-            "grapes" : Fruit(name: "Grapes", emoji: "🍇", calories: 62, carbohydrates: 16, potassium: 176, sugar: 15, protein: 0.6, funFact: "There are more than 8,000 varieties of grape from about 60 species."),
-            "kiwi" : Fruit(name: "Kiwi", emoji: "🥝", calories: 42, carbohydrates: 10, potassium: 215, sugar: 6, protein: 0.8, funFact: "Kiwi fruit contains two times more vitamin C than oranges."),
-            "lemon" : Fruit(name: "Lemon", emoji: "🍋", calories: 17, carbohydrates: 5, potassium: 80, sugar: 1.5, protein: 0.6, funFact: "The high acidity of lemons make them good cleaning aids."),
-            "lime" : Fruit(name: "Lime", emoji: "🍋", calories: 20, carbohydrates: 7, potassium: 68, sugar: 1.1, protein: 0.5, funFact: "Lime is a rich source of dietary fibers but has 4 times less vitamin C than a lemon."),
-            "orange" : Fruit(name: "Orange", emoji: "🍊", calories: 45, carbohydrates: 11, potassium: 174, sugar: 9, protein: 1, funFact: "Christopher Columbus brought the first orange seeds to America in 1493."),
-            "peach" : Fruit(name: "Peach", emoji: "🍑", calories: 59, carbohydrates: 14, potassium: 285, sugar: 13, protein: 1.4, funFact: "Peaches originate from China, they have been cultivated since at least 79 A.D."),
-            "pear" : Fruit(name: "Pear", emoji: "🍐", calories: 102, carbohydrates: 27, potassium: 206, sugar: 17, protein: 0.6, funFact: "Pears are rich source of dietary fibers, vitamins C and K and minerals."),
-            "pineapple" : Fruit(name: "Pineapple", emoji: "🍍", calories: 452, carbohydrates: 119, potassium: 986, sugar: 89, protein: 5, funFact: "It takes almost 3 years for a single pineapple to mature."),
-            "plum" : Fruit(name: "Plum", emoji: "⭐️", calories: 30, carbohydrates: 8, potassium: 104, sugar: 7, protein: 0.5, funFact: "Plum trees are grown on every continent except Antarctica."),
-            "raspberry" : Fruit(name: "Raspberry", emoji: "🍓", calories: 65, carbohydrates: 15, potassium: 186, sugar: 5, protein: 1.5, funFact: "Raspberries are believed to have originated in Turkey."),
-            "tomato" : Fruit(name: "Tomato", emoji: "🍅", calories: 22, carbohydrates: 5, potassium: 292, sugar: 3.2, protein: 1, funFact: "The biggest tomato fight in the world happens each year in Buñol, Spain."),
-            "watermelon" : Fruit(name: "Watermelon", emoji: "🍉", calories: 85, carbohydrates: 21, potassium: 314, sugar: 17, protein: 1.7, funFact: "Lycopene is a healthy antioxidant that gives watermelon its red color.")
-        ]
-    }
-
-    public func getFruit(name: String) -> Fruit? {
-        if let index = fruitDictionary.index(forKey: name) {
-            return fruitDictionary[index].value
-        }
-        
-        return nil
-    }
-}
-
+// MARK: Playgrounds start
 
 let storyboard = UIStoryboard(name: "Main", bundle: nil)
 let view = storyboard.instantiateViewController(withIdentifier: "MainView") as! FruitViewController
@@ -590,6 +667,4 @@ let nav = UINavigationController(rootViewController: view)
 // Present the view controller in the Live View window
 PlaygroundPage.current.liveView = nav
 
-/*:
- Testing one, two three.
- */
+//#-end-hidden-code
